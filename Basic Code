@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BUS UNDO - ബസ് സമയം</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .current-time {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 25px;
+            margin-top: 15px;
+            display: inline-block;
+            font-weight: bold;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .search-section {
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-verify {
+            background: linear-gradient(45deg, #2ed573, #1e90ff);
+            padding: 8px 16px;
+            font-size: 14px;
+            width: auto;
+            margin: 0;
+        }
+
+        .btn-verify:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .results-section {
+            margin-top: 30px;
+        }
+
+        .bus-card {
+            background: white;
+            border: 2px solid #e1e8ed;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .bus-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .bus-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .bus-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .bus-time {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .verification-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid #e1e8ed;
+        }
+
+        .verification-count {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .verified-icon {
+            color: #2ed573;
+            margin-right: 5px;
+        }
+
+        .add-bus-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            border: 2px dashed #ccc;
+        }
+
+        .add-bus-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-row .input-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .bus-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+            
+            .verification-section {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        .success-message {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚌 BUS UNDO</h1>
+            <p>ബസ് ഉണ്ടോ? - അവിടെ ഇപ്പോൾ ബസ് ഉണ്ടോ?</p>
+            <div class="current-time" id="currentTime"></div>
+        </div>
+
+        <div class="main-content">
+            <div class="search-section">
+                <div class="input-group">
+                    <label for="fromLocation">നിങ്ങൾ ഇപ്പോൾ എവിടെയാണ്? (Where are you now?)</label>
+                    <input type="text" id="fromLocation" placeholder="ഉദാ: കൊച്ചി (e.g., Kochi)" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="toLocation">എവിടെ പോകണം? (Where do you want to go?)</label>
+                    <input type="text" id="toLocation" placeholder="ഉദാ: തിരുവനന്തപുരം (e.g., Thiruvananthapuram)" required>
+                </div>
+
+                <button class="btn" onclick="searchBuses()">🔍 ബസ് തിരയുക (Search Buses)</button>
+            </div>
+
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <h2>ലഭ്യമായ ബസുകൾ (Available Buses)</h2>
+                <div id="busResults"></div>
+            </div>
+
+            <div class="add-bus-section">
+                <h3>➕ പുതിയ ബസ് വിവരങ്ങൾ ചേർക്കുക (Add New Bus Information)</h3>
+                <div id="successMessage" style="display: none;" class="success-message"></div>
+                
+                <div class="form-row">
+                    <div class="input-group">
+                        <label for="newBusFrom">എവിടെ നിന്ന് (From)</label>
+                        <input type="text" id="newBusFrom" placeholder="ഉദാ: കൊച്ചി">
+                    </div>
+                    <div class="input-group">
+                        <label for="newBusTo">എവിടേക്ക് (To)</label>
+                        <input type="text" id="newBusTo" placeholder="ഉദാ: തിരുവനന്തപുരം">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="input-group">
+                        <label for="newBusName">ബസിന്റെ പേര് (Bus Name)</label>
+                        <input type="text" id="newBusName" placeholder="ഉദാ: കെഎസ്ആർടിസി സൂപ്പർ ഫാസ്റ്റ്">
+                    </div>
+                    <div class="input-group">
+                        <label for="newBusTime">സമയം (Time)</label>
+                        <input type="time" id="newBusTime" required>
+                    </div>
+                </div>
+
+                <button class="btn" onclick="addNewBus()">📝 ബസ് വിവരങ്ങൾ ചേർക്കുക (Add Bus Information)</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample bus data - In a real application, this would come from a database
+        let busData = [
+            {
+                id: 1,
+                from: "കൊച്ചി",
+                to: "തിരുവനന്തപുരം",
+                name: "കെഎസ്ആർടിസി സൂപ്പർ ഫാസ്റ്റ്",
+                time: "09:30",
+                verifications: 15
+            },
+            {
+                id: 2,
+                from: "കൊച്ചി",
+                to: "തിരുവനന്തപുരം",
+                name: "പ്രൈവറ്റ് വോൾവോ",
+                time: "10:15",
+                verifications: 8
+            },
+            {
+                id: 3,
+                from: "കൊച്ചി",
+                to: "തിരുവനന്തപുരം",
+                name: "കെഎസ്ആർടിസി ഓർഡിനറി",
+                time: "11:00",
+                verifications: 12
+            },
+            {
+                id: 4,
+                from: "കൊച്ചി",
+                to: "കോഴിക്കോട്",
+                name: "മലബാർ എക്സ്പ്രസ്",
+                time: "08:45",
+                verifications: 20
+            },
+            {
+                id: 5,
+                from: "തിരുവനന്തപുരം",
+                to: "കൊച്ചി",
+                name: "ഗാരുഡ സർവീസ്",
+                time: "14:30",
+                verifications: 6
+            }
+        ];
+
+        // Store user verifications with timestamps
+        let userVerifications = JSON.parse(localStorage.getItem('busVerifications') || '{}');
+
+        // Update current time every second
+        function updateCurrentTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-IN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                timeZone: 'Asia/Kolkata'
+            });
+            document.getElementById('currentTime').textContent = `ഇപ്പോളത്തെ സമയം: ${timeString}`;
+        }
+
+        // Call updateCurrentTime immediately and then every second
+        updateCurrentTime();
+        setInterval(updateCurrentTime, 1000);
+
+        function searchBuses() {
+            const fromLocation = document.getElementById('fromLocation').value.trim();
+            const toLocation = document.getElementById('toLocation').value.trim();
+
+            if (!fromLocation || !toLocation) {
+                alert('ദയവായി രണ്ട് സ്ഥലങ്ങളും നൽകുക (Please enter both locations)');
+                return;
+            }
+
+            // Show loading
+            const resultsSection = document.getElementById('resultsSection');
+            const busResults = document.getElementById('busResults');
+            
+            resultsSection.style.display = 'block';
+            busResults.innerHTML = '<div class="loading">🔍 ബസുകൾ തിരയുന്നു... (Searching for buses...)</div>';
+
+            // Simulate search delay
+            setTimeout(() => {
+                displayResults(fromLocation, toLocation);
+            }, 1000);
+        }
+
+        function displayResults(fromLocation, toLocation) {
+            const busResults = document.getElementById('busResults');
+            const currentTime = new Date();
+            
+            // Filter buses based on route and time
+            const matchingBuses = busData.filter(bus => {
+                const busTime = new Date();
+                const [hours, minutes] = bus.time.split(':');
+                busTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                
+                return (
+                    bus.from.toLowerCase().includes(fromLocation.toLowerCase()) &&
+                    bus.to.toLowerCase().includes(toLocation.toLowerCase()) &&
+                    busTime >= currentTime
+                );
+            });
+
+            // Sort by time and get earliest 5
+            matchingBuses.sort((a, b) => a.time.localeCompare(b.time));
+            const earliestBuses = matchingBuses.slice(0, 5);
+
+            if (earliestBuses.length === 0) {
+                busResults.innerHTML = `
+                    <div class="no-results">
+                        😔 ${fromLocation} മുതൽ ${toLocation} വരെ ഇപ്പോൾ ബസുകൾ ലഭ്യമല്ല<br>
+                        (No buses available from ${fromLocation} to ${toLocation} at this time)
+                        <br><br>
+                        പുതിയ ബസ് വിവരങ്ങൾ ചേർക്കാൻ താഴെയുള്ള ഫോം ഉപയോഗിക്കുക<br>
+                        (Use the form below to add new bus information)
+                    </div>
+                `;
+                return;
+            }
+
+            let resultsHTML = '';
+            earliestBuses.forEach(bus => {
+                const canVerify = canUserVerify(bus.id);
+                const buttonText = canVerify ? 'സ്ഥിരീകരിക്കുക' : 'സ്ഥിരീകരിച്ചു';
+                
+                resultsHTML += `
+                    <div class="bus-card">
+                        <div class="bus-header">
+                            <div class="bus-name">${bus.name}</div>
+                            <div class="bus-time">${bus.time}</div>
+                        </div>
+                        <div class="verification-section">
+                            <div class="verification-count">
+                                <span class="verified-icon">✅</span>
+                                ${bus.verifications} പേർ സ്ഥിരീകരിച്ചു (${bus.verifications} people verified)
+                            </div>
+                            <button class="btn btn-verify" 
+                                    onclick="verifyBus(${bus.id})" 
+                                    ${!canVerify ? 'disabled' : ''}>
+                                ${buttonText}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            busResults.innerHTML = resultsHTML;
+        }
+
+        function canUserVerify(busId) {
+            const today = new Date().toDateString();
+            const userKey = `bus_${busId}`;
+            
+            if (!userVerifications[userKey]) {
+                return true;
+            }
+            
+            const lastVerificationDate = new Date(userVerifications[userKey]).toDateString();
+            return lastVerificationDate !== today;
+        }
+
+        function verifyBus(busId) {
+            if (!canUserVerify(busId)) {
+                alert('നിങ്ങൾ ഇന്ന് ഈ ബസ് സ്ഥിരീകരിച്ചിട്ടുണ്ട് (You have already verified this bus today)');
+                return;
+            }
+
+            // Find and update the bus
+            const bus = busData.find(b => b.id === busId);
+            if (bus) {
+                bus.verifications++;
+                
+                // Store user verification with timestamp
+                userVerifications[`bus_${busId}`] = new Date().toISOString();
+                localStorage.setItem('busVerifications', JSON.stringify(userVerifications));
+                
+                // Re-render results to update the display
+                const fromLocation = document.getElementById('fromLocation').value;
+                const toLocation = document.getElementById('toLocation').value;
+                displayResults(fromLocation, toLocation);
+                
+                // Show success feedback
+                alert('നന്ദി! ബസ് സമയം സ്ഥിരീകരിച്ചു (Thank you! Bus timing verified)');
+            }
+        }
+
+        function addNewBus() {
+            const from = document.getElementById('newBusFrom').value.trim();
+            const to = document.getElementById('newBusTo').value.trim();
+            const name = document.getElementById('newBusName').value.trim();
+            const time = document.getElementById('newBusTime').value;
+
+            if (!from || !to || !name || !time) {
+                alert('ദയവായി എല്ലാ വിവരങ്ങളും നൽകുക (Please fill in all information)');
+                return;
+            }
+
+            // Add new bus to data
+            const newBus = {
+                id: Date.now(), // Simple ID generation
+                from: from,
+                to: to,
+                name: name,
+                time: time,
+                verifications: 0
+            };
+
+            busData.push(newBus);
+
+            // Clear form
+            document.getElementById('newBusFrom').value = '';
+            document.getElementById('newBusTo').value = '';
+            document.getElementById('newBusName').value = '';
+            document.getElementById('newBusTime').value = '';
+
+            // Show success message
+            const successMessage = document.getElementById('successMessage');
+            successMessage.textContent = `✅ പുതിയ ബസ് വിവരങ്ങൾ വിജയകരമായി ചേർത്തു! (New bus information added successfully!)`;
+            successMessage.style.display = 'block';
+
+            // Hide success message after 3 seconds
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        // Auto-fill destination fields when adding a new bus if search was performed
+        document.getElementById('fromLocation').addEventListener('input', function() {
+            document.getElementById('newBusFrom').value = this.value;
+        });
+
+        document.getElementById('toLocation').addEventListener('input', function() {
+            document.getElementById('newBusTo').value = this.value;
+        });
+    </script>
+</body>
+</html>
