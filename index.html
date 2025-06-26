@@ -3,357 +3,310 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BUS UNDO - ബസ് സമയം</title>
+    <title>BUS UNDO - ബസ് സമയം (Google Sheets Edition)</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        .gradient-bg {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
         }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
+        .card-shadow {
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
         }
-
-        .header {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-
-        .current-time {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 10px 20px;
-            border-radius: 25px;
-            margin-top: 15px;
-            display: inline-block;
-            font-weight: bold;
-        }
-
-        .main-content {
-            padding: 30px;
-        }
-
-        .search-section {
-            margin-bottom: 30px;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .input-group input, .input-group select {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e1e8ed;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            background: #f8f9fa;
-        }
-
-        .input-group input:focus, .input-group select:focus {
-            outline: none;
-            border-color: #667eea;
-            background: white;
-            box-shadow: 0 0 15px rgba(102, 126, 234, 0.2);
-        }
-
-        .btn {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-            margin-bottom: 10px;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-verify {
-            background: linear-gradient(45deg, #2ed573, #1e90ff);
-            padding: 8px 16px;
-            font-size: 14px;
-            width: auto;
-            margin: 0;
-        }
-
-        .btn-verify:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .results-section {
-            margin-top: 30px;
-        }
-
-        .bus-card {
-            background: white;
-            border: 2px solid #e1e8ed;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s ease;
-        }
-
-        .bus-card:hover {
+        .hover-lift:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
         }
-
-        .bus-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
+        .loading-spinner {
+            border: 4px solid #f3f3f5;
+            border-left: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
         }
-
-        .bus-name {
-            font-size: 1.3em;
-            font-weight: bold;
-            color: #333;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-
-        .bus-time {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #667eea;
+        .pulse-animation {
+            animation: pulse 2s infinite;
         }
-
-        .verification-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 15px;
-            border-top: 1px solid #e1e8ed;
-        }
-
-        .verification-count {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .verified-icon {
-            color: #2ed573;
-            margin-right: 5px;
-        }
-
-        .add-bus-section {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 25px;
-            margin-top: 30px;
-            border: 2px dashed #ccc;
-        }
-
-        .add-bus-section h3 {
-            color: #333;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .form-row {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .form-row .input-group {
-            flex: 1;
-            margin-bottom: 0;
-        }
-
-        .no-results {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-            font-size: 1.1em;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #667eea;
-        }
-
-        @media (max-width: 600px) {
-            .form-row {
-                flex-direction: column;
-            }
-            
-            .bus-header {
-                flex-direction: column;
-                text-align: center;
-                gap: 10px;
-            }
-            
-            .verification-section {
-                flex-direction: column;
-                gap: 10px;
-            }
-        }
-
-        .success-message {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            text-align: center;
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🚌 BUS UNDO</h1>
-            <p>ബസ് ഉണ്ടോ? - അവിടെ ഇപ്പോൾ ബസ് ഉണ്ടോ?</p>
-            <div class="current-time" id="currentTime"></div>
+<body class="gradient-bg min-h-screen p-4">
+    <!-- Setup Instructions Modal -->
+    <div id="setupModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-4xl max-h-screen overflow-y-auto p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-gray-800">
+                    <i class="fas fa-cog mr-2"></i>Google Sheets Setup Required
+                </h2>
+                <button onclick="closeSetupModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4 text-sm">
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                    <p class="font-semibold text-yellow-800">⚠️ Setup Required Before Using</p>
+                    <p class="text-yellow-700">This app needs Google Apps Script setup to work with Google Sheets.</p>
+                </div>
+
+                <div class="space-y-3">
+                    <h3 class="font-bold text-lg">Step 1: Create Google Apps Script Project</h3>
+                    <ol class="list-decimal list-inside space-y-2 pl-4">
+                        <li>Go to <a href="https://script.google.com" target="_blank" class="text-blue-600 underline">script.google.com</a></li>
+                        <li>Click "New Project"</li>
+                        <li>Replace the default code with the provided Apps Script code</li>
+                        <li>Save the project (name it "Bus Undo Backend")</li>
+                    </ol>
+
+                    <h3 class="font-bold text-lg">Step 2: Deploy as Web App</h3>
+                    <ol class="list-decimal list-inside space-y-2 pl-4">
+                        <li>Click "Deploy" → "New deployment"</li>
+                        <li>Choose "Web app" as the type</li>
+                        <li>Set "Execute as" to "Me"</li>
+                        <li>Set "Who has access" to "Anyone"</li>
+                        <li>Click "Deploy" and copy the Web App URL</li>
+                    </ol>
+
+                    <h3 class="font-bold text-lg">Step 3: Configure This App</h3>
+                    <p>Paste your Google Apps Script Web App URL below:</p>
+                    <input type="url" id="webAppUrl" placeholder="https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec" 
+                           class="w-full p-3 border rounded-lg">
+                    <button onclick="saveWebAppUrl()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                        Save URL & Continue
+                    </button>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="font-bold mb-2">Google Apps Script Code (Copy this):</h4>
+                    <pre class="bg-gray-800 text-green-400 p-4 rounded-lg text-xs overflow-x-auto"><code>// Google Apps Script Code for Bus Undo Backend
+function doPost(e) {
+  const sheet = getOrCreateSheet();
+  const data = JSON.parse(e.postData.contents);
+  
+  if (data.action === 'addBus') {
+    const row = [
+      new Date().toISOString(),
+      data.from,
+      data.to,
+      data.name,
+      data.time,
+      0, // initial verifications
+      data.userId,
+      'active'
+    ];
+    sheet.appendRow(row);
+    return ContentService.createTextOutput(JSON.stringify({success: true, message: 'Bus added successfully'}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  if (data.action === 'verifyBus') {
+    const values = sheet.getDataRange().getValues();
+    for (let i = 1; i < values.length; i++) {
+      if (values[i][0] && values[i][0].toISOString() === data.busId) {
+        sheet.getRange(i + 1, 6).setValue(values[i][5] + 1);
+        break;
+      }
+    }
+    return ContentService.createTextOutput(JSON.stringify({success: true}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doGet(e) {
+  const sheet = getOrCreateSheet();
+  const data = sheet.getDataRange().getValues();
+  
+  if (data.length <= 1) {
+    return ContentService.createTextOutput(JSON.stringify({buses: []}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  const buses = [];
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][7] === 'active') {
+      buses.push({
+        id: data[i][0].toISOString(),
+        from: data[i][1],
+        to: data[i][2],
+        name: data[i][3],
+        time: data[i][4],
+        verifications: data[i][5] || 0,
+        addedBy: data[i][6],
+        dateAdded: data[i][0]
+      });
+    }
+  }
+  
+  return ContentService.createTextOutput(JSON.stringify({buses: buses}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function getOrCreateSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet() || SpreadsheetApp.create('Bus Undo Database');
+  let sheet = ss.getSheetByName('BusData');
+  
+  if (!sheet) {
+    sheet = ss.insertSheet('BusData');
+    sheet.getRange(1, 1, 1, 8).setValues([
+      ['Date Added', 'From', 'To', 'Bus Name', 'Time', 'Verifications', 'Added By', 'Status']
+    ]);
+  }
+  
+  return sheet;
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-t-xl p-8 text-center card-shadow">
+            <h1 class="text-4xl font-bold mb-2">
+                <i class="fas fa-bus mr-3"></i>BUS UNDO
+            </h1>
+            <p class="text-xl opacity-90 mb-4">ബസ് ഉണ്ടോ? - അവിടെ ഇപ്പോൾ ബസ് ഉണ്ടോ?</p>
+            <div id="currentTime" class="bg-white bg-opacity-20 px-6 py-2 rounded-full inline-block font-bold"></div>
+            <div class="mt-2 text-sm opacity-75">
+                <i class="fas fa-cloud mr-1"></i>Data synced with Google Sheets
+            </div>
         </div>
 
-        <div class="main-content">
-            <div class="search-section">
-                <div class="input-group">
-                    <label for="fromLocation">നിങ്ങൾ ഇപ്പോൾ എവിടെയാണ്? (Where are you now?)</label>
-                    <input type="text" id="fromLocation" placeholder="ഉദാ: കൊച്ചി (e.g., Kochi)" required>
+        <!-- Main Content -->
+        <div class="bg-white rounded-b-xl card-shadow">
+            <!-- Connection Status -->
+            <div id="connectionStatus" class="px-8 py-4 border-b">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div id="statusIndicator" class="w-3 h-3 rounded-full mr-2"></div>
+                        <span id="statusText" class="text-sm font-medium"></span>
+                    </div>
+                    <button onclick="showSetupModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-cog mr-1"></i>Setup
+                    </button>
                 </div>
-
-                <div class="input-group">
-                    <label for="toLocation">എവിടെ പോകണം? (Where do you want to go?)</label>
-                    <input type="text" id="toLocation" placeholder="ഉദാ: തിരുവനന്തപുരം (e.g., Thiruvananthapuram)" required>
-                </div>
-
-                <button class="btn" onclick="searchBuses()">🔍 ബസ് തിരയുക (Search Buses)</button>
             </div>
 
-            <div class="results-section" id="resultsSection" style="display: none;">
-                <h2>ലഭ്യമായ ബസുകൾ (Available Buses)</h2>
+            <!-- Search Section -->
+            <div class="p-8">
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">
+                            <i class="fas fa-map-marker-alt mr-2"></i>നിങ്ങൾ ഇപ്പോൾ എവിടെയാണ്? (Where are you now?)
+                        </label>
+                        <input type="text" id="fromLocation" 
+                               placeholder="ഉദാ: കൊച്ചി (e.g., Kochi)"
+                               class="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">
+                            <i class="fas fa-map-marker-alt mr-2"></i>എവിടെ പോകണം? (Where do you want to go?)
+                        </label>
+                        <input type="text" id="toLocation" 
+                               placeholder="ഉദാ: തിരുവനന്തപുരം (e.g., Thiruvananthapuram)"
+                               class="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors">
+                    </div>
+                </div>
+
+                <button onclick="searchBuses()" 
+                        class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105">
+                    <i class="fas fa-search mr-2"></i>ബസ് തിരയുക (Search Buses)
+                </button>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultsSection" class="hidden px-8 pb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-list mr-2"></i>ലഭ്യമായ ബസുകൾ (Available Buses)
+                </h2>
                 <div id="busResults"></div>
             </div>
 
-            <div class="add-bus-section">
-                <h3>➕ പുതിയ ബസ് വിവരങ്ങൾ ചേർക്കുക (Add New Bus Information)</h3>
-                <div id="successMessage" style="display: none;" class="success-message"></div>
+            <!-- Add Bus Section -->
+            <div class="bg-gray-50 p-8 border-t">
+                <h3 class="text-xl font-bold text-center mb-6">
+                    <i class="fas fa-plus-circle mr-2"></i>പുതിയ ബസ് വിവരങ്ങൾ ചേർക്കുക (Add New Bus Information)
+                </h3>
                 
-                <div class="form-row">
-                    <div class="input-group">
-                        <label for="newBusFrom">എവിടെ നിന്ന് (From)</label>
-                        <input type="text" id="newBusFrom" placeholder="ഉദാ: കൊച്ചി">
+                <div id="addBusSuccess" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <span id="successMessage"></span>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">എവിടെ നിന്ന് (From)</label>
+                        <input type="text" id="newBusFrom" 
+                               placeholder="ഉദാ: കൊച്ചി"
+                               class="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none">
                     </div>
-                    <div class="input-group">
-                        <label for="newBusTo">എവിടേക്ക് (To)</label>
-                        <input type="text" id="newBusTo" placeholder="ഉദാ: തിരുവനന്തപുരം">
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">എവിടേക്ക് (To)</label>
+                        <input type="text" id="newBusTo" 
+                               placeholder="ഉദാ: തിരുവനന്തപുരം"
+                               class="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none">
                     </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="input-group">
-                        <label for="newBusName">ബസിന്റെ പേര് (Bus Name)</label>
-                        <input type="text" id="newBusName" placeholder="ഉദാ: കെഎസ്ആർടിസി സൂപ്പർ ഫാസ്റ്റ്">
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">ബസിന്റെ പേര് (Bus Name)</label>
+                        <input type="text" id="newBusName" 
+                               placeholder="ഉദാ: കെഎസ്ആർടിസി സൂപ്പർ ഫാസ്റ്റ്"
+                               class="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none">
                     </div>
-                    <div class="input-group">
-                        <label for="newBusTime">സമയം (Time)</label>
-                        <input type="time" id="newBusTime" required>
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">സമയം (Time)</label>
+                        <input type="time" id="newBusTime" 
+                               class="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none">
                     </div>
                 </div>
 
-                <button class="btn" onclick="addNewBus()">📝 ബസ് വിവരങ്ങൾ ചേർക്കുക (Add Bus Information)</button>
+                <button onclick="addNewBus()" 
+                        class="w-full bg-gradient-to-r from-green-600 to-teal-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-green-700 hover:to-teal-700 transition-all">
+                    <i class="fas fa-plus mr-2"></i>ബസ് വിവരങ്ങൾ ചേർക്കുക (Add Bus Information)
+                </button>
             </div>
         </div>
     </div>
 
     <script>
-        // Sample bus data - In a real application, this would come from a database
-        let busData = [
-            {
-                id: 1,
-                from: "കൊച്ചി",
-                to: "തിരുവനന്തപുരം",
-                name: "കെഎസ്ആർടിസി സൂപ്പർ ഫാസ്റ്റ്",
-                time: "09:30",
-                verifications: 15
-            },
-            {
-                id: 2,
-                from: "കൊച്ചി",
-                to: "തിരുവനന്തപുരം",
-                name: "പ്രൈവറ്റ് വോൾവോ",
-                time: "10:15",
-                verifications: 8
-            },
-            {
-                id: 3,
-                from: "കൊച്ചി",
-                to: "തിരുവനന്തപുരം",
-                name: "കെഎസ്ആർടിസി ഓർഡിനറി",
-                time: "11:00",
-                verifications: 12
-            },
-            {
-                id: 4,
-                from: "കൊച്ചി",
-                to: "കോഴിക്കോട്",
-                name: "മലബാർ എക്സ്പ്രസ്",
-                time: "08:45",
-                verifications: 20
-            },
-            {
-                id: 5,
-                from: "തിരുവനന്തപുരം",
-                to: "കൊച്ചി",
-                name: "ഗാരുഡ സർവീസ്",
-                time: "14:30",
-                verifications: 6
-            }
-        ];
-
-        // Store user verifications with timestamps
+        // Configuration
+        let WEBAPP_URL = localStorage.getItem('webAppUrl') || '';
+        let busData = [];
         let userVerifications = JSON.parse(localStorage.getItem('busVerifications') || '{}');
 
-        // Update current time every second
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+            
+            if (!WEBAPP_URL) {
+                showSetupModal();
+            } else {
+                updateConnectionStatus();
+                loadBusData();
+            }
+
+            // Auto-fill functionality
+            document.getElementById('fromLocation').addEventListener('input', function() {
+                document.getElementById('newBusFrom').value = this.value;
+            });
+
+            document.getElementById('toLocation').addEventListener('input', function() {
+                document.getElementById('newBusTo').value = this.value;
+            });
+        });
+
+        // Time display
         function updateCurrentTime() {
             const now = new Date();
             const timeString = now.toLocaleTimeString('en-IN', {
@@ -365,11 +318,72 @@
             document.getElementById('currentTime').textContent = `ഇപ്പോളത്തെ സമയം: ${timeString}`;
         }
 
-        // Call updateCurrentTime immediately and then every second
-        updateCurrentTime();
-        setInterval(updateCurrentTime, 1000);
+        // Setup Modal Functions
+        function showSetupModal() {
+            document.getElementById('setupModal').classList.remove('hidden');
+            document.getElementById('webAppUrl').value = WEBAPP_URL;
+        }
 
-        function searchBuses() {
+        function closeSetupModal() {
+            document.getElementById('setupModal').classList.add('hidden');
+        }
+
+        function saveWebAppUrl() {
+            const url = document.getElementById('webAppUrl').value.trim();
+            if (!url) {
+                alert('Please enter the Web App URL');
+                return;
+            }
+            
+            WEBAPP_URL = url;
+            localStorage.setItem('webAppUrl', url);
+            closeSetupModal();
+            updateConnectionStatus();
+            loadBusData();
+        }
+
+        // Connection Status
+        function updateConnectionStatus() {
+            const indicator = document.getElementById('statusIndicator');
+            const text = document.getElementById('statusText');
+            
+            if (!WEBAPP_URL) {
+                indicator.className = 'w-3 h-3 rounded-full mr-2 bg-red-500';
+                text.textContent = 'Not configured - Click Setup';
+                return;
+            }
+
+            indicator.className = 'w-3 h-3 rounded-full mr-2 bg-yellow-500 pulse-animation';
+            text.textContent = 'Connecting to Google Sheets...';
+
+            // Test connection
+            fetch(WEBAPP_URL)
+                .then(response => response.json())
+                .then(data => {
+                    indicator.className = 'w-3 h-3 rounded-full mr-2 bg-green-500';
+                    text.textContent = 'Connected to Google Sheets';
+                })
+                .catch(error => {
+                    indicator.className = 'w-3 h-3 rounded-full mr-2 bg-red-500';
+                    text.textContent = 'Connection failed - Check setup';
+                });
+        }
+
+        // Data Functions
+        async function loadBusData() {
+            if (!WEBAPP_URL) return;
+            
+            try {
+                const response = await fetch(WEBAPP_URL);
+                const data = await response.json();
+                busData = data.buses || [];
+            } catch (error) {
+                console.error('Error loading bus data:', error);
+                showError('Failed to load bus data from Google Sheets');
+            }
+        }
+
+        async function searchBuses() {
             const fromLocation = document.getElementById('fromLocation').value.trim();
             const toLocation = document.getElementById('toLocation').value.trim();
 
@@ -378,24 +392,40 @@
                 return;
             }
 
-            // Show loading
+            if (!WEBAPP_URL) {
+                showSetupModal();
+                return;
+            }
+
             const resultsSection = document.getElementById('resultsSection');
             const busResults = document.getElementById('busResults');
             
-            resultsSection.style.display = 'block';
-            busResults.innerHTML = '<div class="loading">🔍 ബസുകൾ തിരയുന്നു... (Searching for buses...)</div>';
+            resultsSection.classList.remove('hidden');
+            busResults.innerHTML = `
+                <div class="flex items-center justify-center py-8">
+                    <div class="loading-spinner mr-4"></div>
+                    <span class="text-gray-600">🔍 ബസുകൾ തിരയുന്നു... (Searching for buses...)</span>
+                </div>
+            `;
 
-            // Simulate search delay
-            setTimeout(() => {
+            try {
+                await loadBusData();
                 displayResults(fromLocation, toLocation);
-            }, 1000);
+            } catch (error) {
+                busResults.innerHTML = `
+                    <div class="text-center py-8 text-red-600">
+                        <i class="fas fa-exclamation-triangle text-3xl mb-4"></i>
+                        <p>Error loading data from Google Sheets</p>
+                        <p class="text-sm mt-2">Please check your internet connection and setup</p>
+                    </div>
+                `;
+            }
         }
 
         function displayResults(fromLocation, toLocation) {
             const busResults = document.getElementById('busResults');
             const currentTime = new Date();
             
-            // Filter buses based on route and time
             const matchingBuses = busData.filter(bus => {
                 const busTime = new Date();
                 const [hours, minutes] = bus.time.split(':');
@@ -408,18 +438,17 @@
                 );
             });
 
-            // Sort by time and get earliest 5
             matchingBuses.sort((a, b) => a.time.localeCompare(b.time));
             const earliestBuses = matchingBuses.slice(0, 5);
 
             if (earliestBuses.length === 0) {
                 busResults.innerHTML = `
-                    <div class="no-results">
-                        😔 ${fromLocation} മുതൽ ${toLocation} വരെ ഇപ്പോൾ ബസുകൾ ലഭ്യമല്ല<br>
-                        (No buses available from ${fromLocation} to ${toLocation} at this time)
-                        <br><br>
-                        പുതിയ ബസ് വിവരങ്ങൾ ചേർക്കാൻ താഴെയുള്ള ഫോം ഉപയോഗിക്കുക<br>
-                        (Use the form below to add new bus information)
+                    <div class="text-center py-12">
+                        <i class="fas fa-bus text-4xl text-gray-400 mb-4"></i>
+                        <p class="text-lg text-gray-600 mb-2">😔 ${fromLocation} മുതൽ ${toLocation} വരെ ഇപ്പോൾ ബസുകൾ ലഭ്യമല്ല</p>
+                        <p class="text-gray-500 mb-4">(No buses available from ${fromLocation} to ${toLocation} at this time)</p>
+                        <p class="text-sm text-gray-600">പുതിയ ബസ് വിവരങ്ങൾ ചേർക്കാൻ താഴെയുള്ള ഫോം ഉപയോഗിക്കുക</p>
+                        <p class="text-sm text-gray-500">(Use the form below to add new bus information)</p>
                     </div>
                 `;
                 return;
@@ -431,20 +460,31 @@
                 const buttonText = canVerify ? 'സ്ഥിരീകരിക്കുക' : 'സ്ഥിരീകരിച്ചു';
                 
                 resultsHTML += `
-                    <div class="bus-card">
-                        <div class="bus-header">
-                            <div class="bus-name">${bus.name}</div>
-                            <div class="bus-time">${bus.time}</div>
+                    <div class="bg-white border-2 border-gray-200 rounded-xl p-6 mb-4 hover-lift transition-all">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+                            <div class="mb-2 md:mb-0">
+                                <h3 class="text-xl font-bold text-gray-800">${bus.name}</h3>
+                                <p class="text-gray-600">
+                                    <i class="fas fa-route mr-1"></i>${bus.from} → ${bus.to}
+                                </p>
+                            </div>
+                            <div class="text-2xl font-bold text-blue-600">
+                                <i class="fas fa-clock mr-1"></i>${bus.time}
+                            </div>
                         </div>
-                        <div class="verification-section">
-                            <div class="verification-count">
-                                <span class="verified-icon">✅</span>
+                        <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+                            <div class="text-gray-600">
+                                <i class="fas fa-check-circle text-green-500 mr-1"></i>
                                 ${bus.verifications} പേർ സ്ഥിരീകരിച്ചു (${bus.verifications} people verified)
                             </div>
-                            <button class="btn btn-verify" 
-                                    onclick="verifyBus(${bus.id})" 
-                                    ${!canVerify ? 'disabled' : ''}>
-                                ${buttonText}
+                            <button onclick="verifyBus('${bus.id}')" 
+                                    ${!canVerify ? 'disabled' : ''}
+                                    class="px-4 py-2 rounded-lg font-semibold transition-colors ${
+                                        canVerify 
+                                            ? 'bg-green-600 text-white hover:bg-green-700' 
+                                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    }">
+                                <i class="fas fa-thumbs-up mr-1"></i>${buttonText}
                             </button>
                         </div>
                     </div>
@@ -466,32 +506,51 @@
             return lastVerificationDate !== today;
         }
 
-        function verifyBus(busId) {
+        async function verifyBus(busId) {
             if (!canUserVerify(busId)) {
                 alert('നിങ്ങൾ ഇന്ന് ഈ ബസ് സ്ഥിരീകരിച്ചിട്ടുണ്ട് (You have already verified this bus today)');
                 return;
             }
 
-            // Find and update the bus
-            const bus = busData.find(b => b.id === busId);
-            if (bus) {
-                bus.verifications++;
+            if (!WEBAPP_URL) {
+                showSetupModal();
+                return;
+            }
+
+            try {
+                const response = await fetch(WEBAPP_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'verifyBus',
+                        busId: busId,
+                        userId: getUserId()
+                    })
+                });
+
+                const result = await response.json();
                 
-                // Store user verification with timestamp
-                userVerifications[`bus_${busId}`] = new Date().toISOString();
-                localStorage.setItem('busVerifications', JSON.stringify(userVerifications));
-                
-                // Re-render results to update the display
-                const fromLocation = document.getElementById('fromLocation').value;
-                const toLocation = document.getElementById('toLocation').value;
-                displayResults(fromLocation, toLocation);
-                
-                // Show success feedback
-                alert('നന്ദി! ബസ് സമയം സ്ഥിരീകരിച്ചു (Thank you! Bus timing verified)');
+                if (result.success) {
+                    userVerifications[`bus_${busId}`] = new Date().toISOString();
+                    localStorage.setItem('busVerifications', JSON.stringify(userVerifications));
+                    
+                    // Refresh the results
+                    const fromLocation = document.getElementById('fromLocation').value;
+                    const toLocation = document.getElementById('toLocation').value;
+                    await loadBusData();
+                    displayResults(fromLocation, toLocation);
+                    
+                    alert('നന്ദി! ബസ് സമയം സ്ഥിരീകരിച്ചു (Thank you! Bus timing verified)');
+                }
+            } catch (error) {
+                console.error('Error verifying bus:', error);
+                showError('Failed to verify bus timing');
             }
         }
 
-        function addNewBus() {
+        async function addNewBus() {
             const from = document.getElementById('newBusFrom').value.trim();
             const to = document.getElementById('newBusTo').value.trim();
             const name = document.getElementById('newBusName').value.trim();
@@ -502,43 +561,82 @@
                 return;
             }
 
-            // Add new bus to data
-            const newBus = {
-                id: Date.now(), // Simple ID generation
-                from: from,
-                to: to,
-                name: name,
-                time: time,
-                verifications: 0
-            };
+            if (!WEBAPP_URL) {
+                showSetupModal();
+                return;
+            }
 
-            busData.push(newBus);
+            try {
+                const response = await fetch(WEBAPP_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'addBus',
+                        from: from,
+                        to: to,
+                        name: name,
+                        time: time,
+                        userId: getUserId()
+                    })
+                });
 
-            // Clear form
-            document.getElementById('newBusFrom').value = '';
-            document.getElementById('newBusTo').value = '';
-            document.getElementById('newBusName').value = '';
-            document.getElementById('newBusTime').value = '';
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Clear form
+                    document.getElementById('newBusFrom').value = '';
+                    document.getElementById('newBusTo').value = '';
+                    document.getElementById('newBusName').value = '';
+                    document.getElementById('newBusTime').value = '';
 
-            // Show success message
-            const successMessage = document.getElementById('successMessage');
-            successMessage.textContent = `✅ പുതിയ ബസ് വിവരങ്ങൾ വിജയകരമായി ചേർത്തു! (New bus information added successfully!)`;
-            successMessage.style.display = 'block';
-
-            // Hide success message after 3 seconds
-            setTimeout(() => {
-                successMessage.style.display = 'none';
-            }, 3000);
+                    // Show success message
+                    showSuccess('പുതിയ ബസ് വിവരങ്ങൾ വിജയകരമായി ചേർത്തു! (New bus information added successfully!)');
+                    
+                    // Reload data
+                    await loadBusData();
+                    
+                    // Refresh results if currently searching
+                    const fromLocation = document.getElementById('fromLocation').value;
+                    const toLocation = document.getElementById('toLocation').value;
+                    if (fromLocation && toLocation) {
+                        displayResults(fromLocation, toLocation);
+                    }
+                } else {
+                    throw new Error(result.message || 'Failed to add bus');
+                }
+            } catch (error) {
+                console.error('Error adding bus:', error);
+                showError('Failed to add bus information to Google Sheets');
+            }
         }
 
-        // Auto-fill destination fields when adding a new bus if search was performed
-        document.getElementById('fromLocation').addEventListener('input', function() {
-            document.getElementById('newBusFrom').value = this.value;
-        });
+        // Utility Functions
+        function getUserId() {
+            let userId = localStorage.getItem('busUndoUserId');
+            if (!userId) {
+                userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('busUndoUserId', userId);
+            }
+            return userId;
+        }
 
-        document.getElementById('toLocation').addEventListener('input', function() {
-            document.getElementById('newBusTo').value = this.value;
-        });
+        function showSuccess(message) {
+            const successDiv = document.getElementById('addBusSuccess');
+            const messageSpan = document.getElementById('successMessage');
+            
+            messageSpan.textContent = message;
+            successDiv.classList.remove('hidden');
+            
+            setTimeout(() => {
+                successDiv.classList.add('hidden');
+            }, 5000);
+        }
+
+        function showError(message) {
+            alert(`❌ Error: ${message}`);
+        }
     </script>
 </body>
 </html>
