@@ -283,12 +283,16 @@
             <div class="search-section">
                 <div class="input-group">
                     <label for="fromLocation">നിങ്ങൾ ഇപ്പോൾ എവിടെയാണ്? (Where are you now?)</label>
-                    <input type="text" id="fromLocation" placeholder="ഉദാ: കൊച്ചി (e.g., Kochi)" required>
+                    <select id="fromLocation" required>
+                        <option value="">സ്ഥലം തിരഞ്ഞെടുക്കുക (Select Location)</option>
+                    </select>
                 </div>
 
                 <div class="input-group">
                     <label for="toLocation">എവിടെ പോകണം? (Where do you want to go?)</label>
-                    <input type="text" id="toLocation" placeholder="ഉദാ: തിരുവനന്തപുരം (e.g., Thiruvananthapuram)" required>
+                    <select id="toLocation" required>
+                        <option value="">സ്ഥലം തിരഞ്ഞെടുക്കുക (Select Location)</option>
+                    </select>
                 </div>
 
                 <button class="btn" onclick="searchBuses()">🔍 ബസ് തിരയുക (Search Buses)</button>
@@ -391,6 +395,7 @@
                 
                 if (data.success) {
                     localBusData = data.buses || [];
+                    populateLocationDropdowns();
                     document.getElementById('statusMessage').style.display = 'none';
                 } else {
                     throw new Error(data.error || 'Failed to load data');
@@ -438,19 +443,76 @@
                         time: "08:45",
                         verifications: 20,
                         dateAdded: new Date().toISOString()
+                    },
+                    {
+                        id: 4,
+                        from: "തിരുവനന്തപുരം",
+                        to: "കൊച്ചി",
+                        name: "കെഎസ്ആർടിസി സൂപ്പർ ഫാസ്റ്റ്",
+                        time: "07:00",
+                        verifications: 12,
+                        dateAdded: new Date().toISOString()
+                    },
+                    {
+                        id: 5,
+                        from: "കോഴിക്കോട്",
+                        to: "കൊച്ചി",
+                        name: "മലബാർ എക്സ്പ്രസ്",
+                        time: "14:30",
+                        verifications: 18,
+                        dateAdded: new Date().toISOString()
                     }
                 ];
                 localStorage.setItem('busData', JSON.stringify(localBusData));
             }
+            populateLocationDropdowns();
+        }
+
+        // Populate location dropdowns with unique cities
+        function populateLocationDropdowns() {
+            const fromSelect = document.getElementById('fromLocation');
+            const toSelect = document.getElementById('toLocation');
+            
+            // Get unique locations
+            const locations = new Set();
+            localBusData.forEach(bus => {
+                locations.add(bus.from);
+                locations.add(bus.to);
+            });
+            
+            // Convert to sorted array
+            const sortedLocations = Array.from(locations).sort();
+            
+            // Clear existing options (except the first default option)
+            fromSelect.innerHTML = '<option value="">സ്ഥലം തിരഞ്ഞെടുക്കുക (Select Location)</option>';
+            toSelect.innerHTML = '<option value="">സ്ഥലം തിരഞ്ഞെടുക്കുക (Select Location)</option>';
+            
+            // Add locations to dropdowns
+            sortedLocations.forEach(location => {
+                const fromOption = document.createElement('option');
+                fromOption.value = location;
+                fromOption.textContent = location;
+                fromSelect.appendChild(fromOption);
+                
+                const toOption = document.createElement('option');
+                toOption.value = location;
+                toOption.textContent = location;
+                toSelect.appendChild(toOption);
+            });
         }
 
         // Search for buses
         function searchBuses() {
-            const fromLocation = document.getElementById('fromLocation').value.trim();
-            const toLocation = document.getElementById('toLocation').value.trim();
+            const fromLocation = document.getElementById('fromLocation').value;
+            const toLocation = document.getElementById('toLocation').value;
 
             if (!fromLocation || !toLocation) {
-                showStatusMessage('ദയവായി രണ്ട് സ്ഥലങ്ങളും നൽകുക (Please enter both locations)', 'error');
+                showStatusMessage('ദയവായി രണ്ട് സ്ഥലങ്ങളും തിരഞ്ഞെടുക്കുക (Please select both locations)', 'error');
+                return;
+            }
+
+            if (fromLocation === toLocation) {
+                showStatusMessage('ദയവായി വ്യത്യസ്ത സ്ഥലങ്ങൾ തിരഞ്ഞെടുക്കുക (Please select different locations)', 'error');
                 return;
             }
 
@@ -479,8 +541,8 @@
                 busTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
                 
                 return (
-                    bus.from.toLowerCase().includes(fromLocation.toLowerCase()) &&
-                    bus.to.toLowerCase().includes(toLocation.toLowerCase()) &&
+                    bus.from === fromLocation &&
+                    bus.to === toLocation &&
                     busTime >= currentTime
                 );
             });
@@ -499,6 +561,11 @@
                         (Use the form below to add new bus information)
                     </div>
                 `;
+                
+                // Auto-fill the add bus form
+                document.getElementById('newBusFrom').value = fromLocation;
+                document.getElementById('newBusTo').value = toLocation;
+                
                 return;
             }
 
@@ -603,6 +670,11 @@
                 return;
             }
 
+            if (from === to) {
+                showStatusMessage('ദയവായി വ്യത്യസ്ത സ്ഥലങ്ങൾ നൽകുക (Please provide different locations)', 'error');
+                return;
+            }
+
             // Check for duplicate entries
             const duplicate = localBusData.find(bus => 
                 bus.from.toLowerCase() === from.toLowerCase() && 
@@ -646,6 +718,9 @@
                     // Update localStorage backup
                     localStorage.setItem('busData', JSON.stringify(localBusData));
 
+                    // Update dropdowns with new locations
+                    populateLocationDropdowns();
+
                     // Clear form
                     document.getElementById('newBusFrom').value = '';
                     document.getElementById('newBusTo').value = '';
@@ -665,17 +740,17 @@
                 }
             } catch (error) {
                 console.error('Error adding bus:', error);
-                showStatusMessage('✅ പുതിയ ബസ് വിവരങ്ങൾ വിജയകരമായി ചേർത്തു! (New bus information added successfully!', 'error');
+                showStatusMessage('ബസ് വിവരങ്ങൾ ചേർക്കുന്നതിൽ പിശക് സംഭവിച്ചു (Error adding bus information)', 'error');
             }
         }
 
         // Setup auto-fill functionality
         function setupAutoFill() {
-            document.getElementById('fromLocation').addEventListener('input', function() {
+            document.getElementById('fromLocation').addEventListener('change', function() {
                 document.getElementById('newBusFrom').value = this.value;
             });
 
-            document.getElementById('toLocation').addEventListener('input', function() {
+            document.getElementById('toLocation').addEventListener('change', function() {
                 document.getElementById('newBusTo').value = this.value;
             });
         }
