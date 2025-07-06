@@ -309,11 +309,11 @@
                 <div class="form-row">
                     <div class="input-group">
                         <label for="newBusFrom">എവിടെ നിന്ന് (From)</label>
-                        <input type="text" id="newBusFrom" placeholder="ഉദാ: കൊച്ചി">
+                        <input type="text" id="newBusFrom" list="locationSuggestions" placeholder="ഉദാ: കൊച്ചി">
                     </div>
                     <div class="input-group">
                         <label for="newBusTo">എവിടേക്ക് (To)</label>
-                        <input type="text" id="newBusTo" placeholder="ഉദാ: തിരുവനന്തപുരം">
+                        <input type="text" id="newBusTo" list="locationSuggestions" placeholder="ഉദാ: തിരുവനന്തപുരം">
                     </div>
                 </div>
 
@@ -756,30 +756,27 @@
         }
 
         // Initialize the app when page loads
-        // Smart input enhancement for newBusFrom and newBusTo
-function setupSmartLocationInput() {
-    const fromInput = document.getElementById('newBusFrom');
-    const toInput = document.getElementById('newBusTo');
-
-    const getSuggestedLocation = (input, selectId) => {
-        const locations = Array.from(document.getElementById(selectId).options).map(opt => opt.value.toLowerCase());
-        const inputVal = input.value.toLowerCase();
-        const suggestion = locations.find(loc => loc === inputVal);
-        if (suggestion) {
-            showStatusMessage(`ℹ️ "${input.value}" നിലവിലുള്ള സ്ഥലമാണ്. ലിസ്റ്റിൽ നിന്നും തിരഞ്ഞെടുക്കുക.`, 'info');
-        } else if (locations.some(loc => loc.includes(inputVal))) {
-            const closeMatches = locations.filter(loc => loc.includes(inputVal)).slice(0, 3).join(', ');
-            showStatusMessage(`ℹ️ "${input.value}" പോലുള്ള സ്ഥലങ്ങൾ കണ്ടെത്തി: ${closeMatches}. ഈ സ്ഥലങ്ങളിൽ ഒന്നാണെങ്കിൽ, തിരഞ്ഞെടുക്കുക.`, 'info');
-        }
-    };
-
-    fromInput.addEventListener('input', () => getSuggestedLocation(fromInput, 'fromLocation'));
-    toInput.addEventListener('input', () => getSuggestedLocation(toInput, 'toLocation'));
+        // Populate datalist for auto-suggestions
+function populateLocationDatalist() {
+    const datalist = document.getElementById('locationSuggestions');
+    const uniqueLocations = new Set();
+    localBusData.forEach(bus => {
+        uniqueLocations.add(bus.from);
+        uniqueLocations.add(bus.to);
+    });
+    datalist.innerHTML = '';
+    Array.from(uniqueLocations).sort().forEach(location => {
+        const option = document.createElement('option');
+        option.value = location;
+        datalist.appendChild(option);
+    });
 }
 
+// Extend initializeApp to include datalist population
 document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
-    setupSmartLocationInput();
+    setupAutoFill();
+    populateLocationDatalist();
 });
     </script>
 </body>
