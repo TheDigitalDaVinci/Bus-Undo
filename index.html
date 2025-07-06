@@ -756,7 +756,31 @@
         }
 
         // Initialize the app when page loads
-        document.addEventListener('DOMContentLoaded', initializeApp);
+        // Smart input enhancement for newBusFrom and newBusTo
+function setupSmartLocationInput() {
+    const fromInput = document.getElementById('newBusFrom');
+    const toInput = document.getElementById('newBusTo');
+
+    const getSuggestedLocation = (input, selectId) => {
+        const locations = Array.from(document.getElementById(selectId).options).map(opt => opt.value.toLowerCase());
+        const inputVal = input.value.toLowerCase();
+        const suggestion = locations.find(loc => loc === inputVal);
+        if (suggestion) {
+            showStatusMessage(`ℹ️ "${input.value}" നിലവിലുള്ള സ്ഥലമാണ്. ലിസ്റ്റിൽ നിന്നും തിരഞ്ഞെടുക്കുക.`, 'info');
+        } else if (locations.some(loc => loc.includes(inputVal))) {
+            const closeMatches = locations.filter(loc => loc.includes(inputVal)).slice(0, 3).join(', ');
+            showStatusMessage(`ℹ️ "${input.value}" പോലുള്ള സ്ഥലങ്ങൾ കണ്ടെത്തി: ${closeMatches}. ഈ സ്ഥലങ്ങളിൽ ഒന്നാണെങ്കിൽ, തിരഞ്ഞെടുക്കുക.`, 'info');
+        }
+    };
+
+    fromInput.addEventListener('input', () => getSuggestedLocation(fromInput, 'fromLocation'));
+    toInput.addEventListener('input', () => getSuggestedLocation(toInput, 'toLocation'));
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initializeApp();
+    setupSmartLocationInput();
+});
     </script>
 </body>
 </html>
